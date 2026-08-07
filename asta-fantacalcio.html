@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Asta Fantacalcio</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root{
+  --bg:#0a0f1e;
+  --bg-grad:#0d1426;
+  --surface:#131c33;
+  --surface-2:#1a2440;
+  --surface-3:#212d4d;
+  --border:#2a3757;
+  --border-soft:#1f2a48;
+  --text:#eef1f8;
+  --text-muted:#8794b3;
+  --text-dim:#5c6884;
+  --gold:#f4b740;
+  --gold-soft:#4a3a1a;
+  --green:#2ee6a6;
+  --red:#ff5d7a;
+
+  --p-color:#b18cff;
+  --p-bg:#241a3f;
+  --d-color:#5aa8ff;
+  --d-bg:#152641;
+  --c-color:#2ee6a6;
+  --c-bg:#0f2c25;
+  --a-color:#ff8a5c;
+  --a-bg:#331f14;
+}
+
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(circle at 15% -10%, #17224a 0%, transparent 45%),
+    radial-gradient(circle at 100% 0%, #14203e 0%, transparent 40%),
+    var(--bg);
+  color:var(--text);
+  font-family:'Manrope', sans-serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+.display{ font-family:'Teko', sans-serif; letter-spacing:0.01em; }
+
+::selection{ background:var(--gold); color:#1a1400; }
+
+button{ font-family:inherit; cursor:pointer; border:none; }
+input{ font-family:inherit; }
+input:focus, button:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+
+.hidden{ display:none !important; }
+
+/* ---------- shared layout ---------- */
+.wrap{ max-width:1200px; margin:0 auto; padding:24px 20px 80px; }
+.top-eyebrow{
+  display:flex; align-items:center; gap:10px;
+  color:var(--text-dim); font-size:13px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px;
+}
+.top-eyebrow .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px var(--gold); }
+
+h1.page-title{
+  font-family:'Teko', sans-serif; font-weight:600; font-size:44px;
+  margin:0 0 4px; letter-spacing:0.01em; line-height:1;
+}
+p.page-sub{ color:var(--text-muted); margin:0 0 28px; font-size:15px; }
+
+/* ---------- CARD ---------- */
+.card{
+  background:linear-gradient(180deg, var(--surface) 0%, var(--surface) 100%);
+  border:1px solid var(--border-soft);
+  border-radius:16px;
+  padding:22px;
+}
+
+/* ============ RESUME SCREEN ============ */
+#screen-resume .resume-box{
+  max-width:520px; margin:80px auto; text-align:center;
+}
+#screen-resume .resume-box .badge{
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--surface-2); border:1px solid var(--border);
+  padding:6px 14px; border-radius:100px; font-size:12px; color:var(--gold);
+  font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:18px;
+}
+#screen-resume h1{ font-size:40px; margin:0 0 10px; }
+#screen-resume p{ color:var(--text-muted); margin:0 0 26px; line-height:1.5; }
+.resume-stats{ display:flex; gap:12px; justify-content:center; margin-bottom:28px; }
+.resume-stats .stat{
+  background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
+  padding:14px 20px; min-width:110px;
+}
+.resume-stats .stat .num{ font-family:'Teko'; font-size:36px; color:var(--gold); line-height:1; }
+.resume-stats .stat .lbl{ font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px;}
+.resume-actions{ display:flex; gap:12px; justify-content:center; }
+
+/* ============ SETUP ============ */
+.setup-grid{ display:grid; grid-template-columns:1fr; gap:18px; }
+@media(min-width:860px){ .setup-grid{ grid-template-columns:1.1fr 1fr; } }
+
+.field-label{
+  font-size:12px; font-weight:700; color:var(--text-muted);
+  text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; display:block;
+}
+.credits-input-row{ display:flex; align-items:baseline; gap:10px; margin-bottom:22px; }
+.credits-input-row input{
+  background:transparent; border:none; color:var(--gold);
+  font-family:'Teko'; font-size:64px; font-weight:600; width:180px;
+  border-bottom:2px solid var(--border);
+  padding:0 0 2px;
+}
+.credits-input-row span{ color:var(--text-dim); font-size:16px; font-weight:600; }
+
+.role-setup-list{ display:flex; flex-direction:column; gap:10px; }
+.role-setup-row{
+  display:flex; align-items:center; gap:14px;
+  background:var(--surface-2); border:1px solid var(--border-soft);
+  border-radius:12px; padding:12px 14px;
+}
+.role-chip{
+  width:42px; height:42px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Teko'; font-size:22px; font-weight:700; flex:none;
+}
+.role-setup-row .role-name{ flex:1; font-weight:700; font-size:14.5px; }
+.role-setup-row .role-name small{ display:block; color:var(--text-dim); font-weight:500; font-size:11.5px; margin-top:1px;}
+.stepper{ display:flex; align-items:center; gap:0; background:var(--surface-3); border-radius:10px; overflow:hidden; }
+.stepper button{
+  width:34px; height:34px; background:transparent; color:var(--text-muted);
+  font-size:18px; font-weight:700;
+}
+.stepper button:hover{ background:var(--border); color:var(--text); }
+.stepper input{
+  width:40px; text-align:center; background:transparent; border:none; color:var(--text);
+  font-family:'Teko'; font-size:22px; font-weight:600;
+}
+
+.total-line{
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:16px; padding-top:16px; border-top:1px dashed var(--border);
+  font-size:13px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.06em;
+}
+.total-line b{ color:var(--text); font-family:'Teko'; font-size:24px; font-weight:600; letter-spacing:0; text-transform:none; }
+
+/* upload box */
+.upload-box{
+  border:1.5px dashed var(--border); border-radius:14px;
+  padding:26px 18px; text-align:center; cursor:pointer;
+  transition:border-color .15s, background .15s;
+  background:var(--surface-2);
+}
+.upload-box:hover{ border-color:var(--gold); background:var(--surface-3); }
+.upload-box.has-file{ border-color:var(--green); }
+.upload-box .icon{ font-size:28px; margin-bottom:8px; }
+.upload-box .main{ font-weight:700; font-size:14.5px; margin-bottom:4px; }
+.upload-box .sub{ font-size:12.5px; color:var(--text-dim); }
+#file-input{ display:none; }
+
+.preview-summary{ margin-top:14px; display:flex; flex-wrap:wrap; gap:8px; }
+.preview-pill{
+  font-size:12px; font-weight:700; padding:6px 11px; border-radius:100px;
+  background:var(--surface-3); color:var(--text-muted); display:flex; gap:6px; align-items:center;
+}
+.preview-pill b{ color:var(--text); }
+
+.btn{
+  padding:13px 22px; border-radius:11px; font-weight:700; font-size:14.5px;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  transition:transform .1s, filter .15s, opacity .15s;
+}
+.btn:active{ transform:scale(0.97); }
+.btn-primary{ background:var(--gold); color:#1a1400; }
+.btn-primary:hover{ filter:brightness(1.08); }
+.btn-primary:disabled{ opacity:0.35; cursor:not-allowed; }
+.btn-ghost{ background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+.btn-ghost:hover{ background:var(--surface-3); }
+.btn-danger-ghost{ background:transparent; color:var(--red); border:1px solid rgba(255,93,122,0.35); }
+.btn-danger-ghost:hover{ background:rgba(255,93,122,0.08); }
+.btn-block{ width:100%; }
+
+.setup-cta{ margin-top:22px; display:flex; justify-content:flex-end; }
+
+/* ============ AUCTION SCREEN ============ */
+#screen-auction{ padding-bottom:120px; }
+.auction-header{
+  display:flex; justify-content:space-between; align-items:flex-start;
+  gap:16px; margin-bottom:18px; flex-wrap:wrap;
+}
+.header-actions{ display:flex; gap:10px; }
+.icon-btn{
+  width:38px; height:38px; border-radius:10px; background:var(--surface-2);
+  border:1px solid var(--border); color:var(--text-muted); font-size:16px;
+  display:flex; align-items:center; justify-content:center;
+}
+.icon-btn:hover{ color:var(--text); background:var(--surface-3); }
+
+/* SCOREBOARD */
+.scoreboard{
+  background:linear-gradient(160deg, #101a33 0%, #0c1428 100%);
+  border:1px solid var(--border-soft); border-radius:18px;
+  padding:22px 24px; margin-bottom:20px;
+  display:grid; grid-template-columns:1fr; gap:18px;
+  position:relative; overflow:hidden;
+}
+.scoreboard::before{
+  content:""; position:absolute; inset:0;
+  background:repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+  pointer-events:none;
+}
+@media(min-width:760px){ .scoreboard{ grid-template-columns:auto 1fr; align-items:center; } }
+
+.credits-block{ display:flex; align-items:flex-end; gap:14px; }
+.credits-block .label{ color:var(--text-dim); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; }
+.credits-block .big{
+  font-family:'Teko'; font-size:76px; line-height:0.85; font-weight:600; color:var(--gold);
+  text-shadow:0 0 24px rgba(244,183,64,0.35);
+  font-variant-numeric:tabular-nums;
+}
+.credits-block .of{ color:var(--text-dim); font-size:20px; font-family:'Teko'; padding-bottom:6px; }
+.credits-block.low .big{ color:var(--red); text-shadow:0 0 24px rgba(255,93,122,0.35); }
+
+.role-tally{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+@media(min-width:480px){ .role-tally{ grid-template-columns:repeat(4,1fr); } }
+.tally-item{
+  background:rgba(255,255,255,0.02); border:1px solid var(--border-soft);
+  border-radius:12px; padding:10px 12px;
+}
+.tally-item .row1{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:7px; }
+.tally-item .rname{ font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; }
+.tally-item .rcount{ font-family:'Teko'; font-size:20px; font-weight:600; color:var(--text); }
+.tally-bar{ height:5px; border-radius:4px; background:var(--surface-3); overflow:hidden; }
+.tally-fill{ height:100%; border-radius:4px; transition:width .2s; }
+.tally-avg{ font-size:10px; color:var(--text-dim); margin-top:5px; font-weight:600; }
+
+.warning-banner{
+  grid-column:1/-1; display:flex; align-items:center; gap:10px;
+  background:rgba(255,93,122,0.1); border:1px solid rgba(255,93,122,0.35);
+  color:var(--red); border-radius:10px; padding:10px 14px; font-size:12.5px; font-weight:700;
+  line-height:1.4;
+}
+
+/* header actions row */
+.header-actions{ flex-wrap:wrap; }
+
+/* favorites */
+.fav-star{
+  width:26px; height:26px; border-radius:8px; flex:none; background:transparent;
+  color:var(--text-dim); font-size:15px; display:flex; align-items:center; justify-content:center;
+}
+.fav-star:hover{ color:var(--gold); background:var(--surface-3); }
+.fav-star.active{ color:var(--gold); }
+.role-tab.fav-toggle{ display:flex; align-items:center; gap:5px; }
+.role-tab.fav-toggle.active{ background:var(--gold); border-color:var(--gold); color:#1a1400; }
+
+/* price diff badge */
+.diff-badge{
+  font-size:10.5px; font-weight:800; padding:2px 6px; border-radius:100px; flex:none;
+}
+.diff-badge.pos{ color:var(--red); background:rgba(255,93,122,0.12); }
+.diff-badge.neg{ color:var(--green); background:rgba(46,230,166,0.12); }
+.diff-badge.zero{ color:var(--text-dim); background:rgba(255,255,255,0.04); }
+
+.roster-complete-badge{
+  font-size:11px; font-weight:800; color:var(--green); background:rgba(46,230,166,0.12);
+  padding:3px 9px; border-radius:100px;
+}
+
+/* SUMMARY MODAL */
+#summary-overlay .box{ max-width:480px; max-height:85vh; overflow-y:auto; }
+.summary-stat-row{ display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border-soft); font-size:13.5px; }
+.summary-stat-row:last-child{ border-bottom:none; }
+.summary-stat-row .lbl{ color:var(--text-muted); font-weight:600; }
+.summary-stat-row .val{ font-family:'Teko'; font-size:20px; color:var(--gold); }
+.summary-section-title{ font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim); margin:18px 0 8px; }
+.summary-top-item{ display:flex; justify-content:space-between; font-size:13px; padding:6px 0; }
+.summary-top-item .n{ font-weight:700; }
+.summary-top-item .p{ color:var(--gold); font-family:'Teko'; font-size:18px; }
+
+/* PANELS TOGGLE (mobile) */
+.panel-toggle{ display:flex; gap:8px; margin-bottom:14px; }
+.panel-toggle button{
+  flex:1; padding:11px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border);
+  color:var(--text-muted); font-weight:700; font-size:13.5px;
+}
+.panel-toggle button.active{ background:var(--gold); color:#1a1400; border-color:var(--gold); }
+@media(min-width:980px){ .panel-toggle{ display:none; } }
+
+.main-grid{ display:grid; grid-template-columns:1fr; gap:20px; }
+@media(min-width:980px){ .main-grid{ grid-template-columns:1.5fr 1fr; align-items:start; } }
+
+.panel{ background:var(--surface); border:1px solid var(--border-soft); border-radius:16px; overflow:hidden; }
+.panel-head{ padding:16px 18px; border-bottom:1px solid var(--border-soft); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.panel-head h2{ font-family:'Teko'; font-size:24px; font-weight:600; margin:0; letter-spacing:0.01em; }
+.count-badge{ font-size:12px; color:var(--text-dim); font-weight:700; }
+
+.filters{ padding:14px 18px 0; display:flex; gap:8px; flex-wrap:wrap; }
+.role-tab{
+  padding:8px 14px; border-radius:100px; background:var(--surface-2); border:1px solid var(--border);
+  color:var(--text-muted); font-weight:800; font-size:12.5px; letter-spacing:0.02em;
+}
+.role-tab.active{ color:#0a0f1e; }
+.role-tab[data-role="ALL"].active{ background:var(--text); border-color:var(--text); }
+.role-tab[data-role="P"].active{ background:var(--p-color); border-color:var(--p-color); }
+.role-tab[data-role="D"].active{ background:var(--d-color); border-color:var(--d-color); }
+.role-tab[data-role="C"].active{ background:var(--c-color); border-color:var(--c-color); }
+.role-tab[data-role="A"].active{ background:var(--a-color); border-color:var(--a-color); }
+
+.search-row{ padding:12px 18px; }
+.search-row input{
+  width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:10px;
+  padding:11px 14px; color:var(--text); font-size:14px;
+}
+.search-row input::placeholder{ color:var(--text-dim); }
+
+.player-list{ max-height:56vh; overflow-y:auto; padding:0 10px 12px; }
+.player-row{
+  display:flex; align-items:center; gap:12px; padding:11px 8px; border-radius:10px;
+  cursor:pointer; border:1px solid transparent;
+}
+.player-row:hover{ background:var(--surface-2); }
+.player-row.selected{ background:var(--surface-3); border-color:var(--gold); }
+.player-row .rbadge{
+  width:28px; height:28px; border-radius:8px; flex:none; display:flex; align-items:center; justify-content:center;
+  font-family:'Teko'; font-size:15px; font-weight:700;
+}
+.player-row .pname{ flex:1; min-width:0; }
+.player-row .pname .n{ font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.player-row .pname .t{ font-size:11.5px; color:var(--text-dim); }
+.player-row .pqt{ font-family:'Teko'; font-size:20px; color:var(--text-muted); min-width:30px; text-align:right; }
+.empty-state{ padding:40px 20px; text-align:center; color:var(--text-dim); font-size:13.5px; }
+.empty-state .big{ font-size:30px; margin-bottom:8px; }
+
+/* ROSTER */
+.roster-role-group{ padding:10px 18px 4px; }
+.roster-role-group .rgh{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.roster-role-group .rgh .lbl{ font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.07em; }
+.roster-role-group .rgh .cnt{ font-size:11.5px; color:var(--text-dim); font-weight:700; }
+.roster-item{
+  display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px; background:var(--surface-2);
+  margin-bottom:6px; border:1px solid var(--border-soft);
+}
+.roster-item .n{ flex:1; min-width:0; font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.roster-item .t{ font-size:11px; color:var(--text-dim); }
+.roster-item .price{ font-family:'Teko'; font-size:19px; color:var(--gold); min-width:34px; text-align:right; }
+.roster-item .rm{ width:24px; height:24px; border-radius:7px; background:transparent; color:var(--text-dim); font-size:15px; }
+.roster-item .rm:hover{ color:var(--red); background:rgba(255,93,122,0.1); }
+.roster-empty-slot{
+  font-size:12px; color:var(--text-dim); padding:8px 10px; border:1px dashed var(--border); border-radius:9px; margin-bottom:6px;
+}
+.roster-footer{ padding:14px 18px; border-top:1px solid var(--border-soft); }
+
+/* ACTION BAR (assign player) */
+#action-bar{
+  position:fixed; left:0; right:0; bottom:0; z-index:50;
+  background:var(--surface-3); border-top:1px solid var(--border);
+  box-shadow:0 -8px 30px rgba(0,0,0,0.4);
+  padding:14px 18px calc(14px + env(safe-area-inset-bottom));
+}
+#action-bar .inner{ max-width:1200px; margin:0 auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+#action-bar .pinfo{ flex:1; min-width:160px; }
+#action-bar .pinfo .n{ font-weight:800; font-size:16px; }
+#action-bar .pinfo .t{ font-size:12px; color:var(--text-muted); }
+.price-stepper{ display:flex; align-items:center; gap:6px; }
+.price-stepper button{
+  width:34px; height:34px; border-radius:9px; background:var(--surface-2); color:var(--text-muted); font-weight:700; font-size:15px; border:1px solid var(--border);
+}
+.price-stepper button:hover{ background:var(--border); color:var(--text); }
+.price-stepper input{
+  width:74px; text-align:center; background:var(--surface-2); border:1px solid var(--border); border-radius:9px;
+  color:var(--gold); font-family:'Teko'; font-size:26px; font-weight:600; padding:6px 0;
+}
+#action-bar .actions{ display:flex; gap:8px; }
+
+/* overlay confirm */
+#overlay{
+  position:fixed; inset:0; background:rgba(6,9,18,0.72); backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center; z-index:100; padding:20px;
+}
+#overlay .box{
+  background:var(--surface-2); border:1px solid var(--border); border-radius:16px; padding:24px; max-width:380px; width:100%;
+}
+#overlay h3{ font-family:'Teko'; font-size:26px; margin:0 0 8px; font-weight:600; }
+#overlay p{ color:var(--text-muted); font-size:14px; line-height:1.5; margin:0 0 20px; }
+#overlay .box-actions{ display:flex; gap:10px; justify-content:flex-end; }
+
+.toast{
+  position:fixed; top:18px; left:50%; transform:translateX(-50%);
+  background:var(--surface-3); border:1px solid var(--border); color:var(--text);
+  padding:11px 18px; border-radius:100px; font-size:13.5px; font-weight:700; z-index:200;
+  opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;
+}
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(6px); }
+
+::-webkit-scrollbar{ width:8px; height:8px; }
+::-webkit-scrollbar-thumb{ background:var(--border); border-radius:8px; }
+::-webkit-scrollbar-track{ background:transparent; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===================== RESUME SCREEN ===================== -->
+<div id="screen-resume" class="hidden">
+  <div class="wrap">
+    <div class="resume-box">
+      <div class="badge">● Sessione trovata</div>
+      <h1 class="display">Bentornato in asta</h1>
+      <p>Hai una sessione salvata su questo dispositivo. Vuoi riprenderla da dove l'avevi lasciata o iniziarne una nuova?</p>
+      <div class="resume-stats">
+        <div class="stat"><div class="num display" id="resume-credits">0</div><div class="lbl">Crediti rimasti</div></div>
+        <div class="stat"><div class="num display" id="resume-count">0</div><div class="lbl">In rosa</div></div>
+      </div>
+      <div class="resume-actions">
+        <button class="btn btn-ghost" id="btn-resume-new">Nuova asta</button>
+        <button class="btn btn-primary" id="btn-resume-continue">Riprendi asta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SETUP SCREEN ===================== -->
+<div id="screen-setup" class="hidden">
+  <div class="wrap">
+    <div class="top-eyebrow"><span class="dot"></span>SETUP ASTA</div>
+    <h1 class="page-title display">Prepara la tua rosa</h1>
+    <p class="page-sub">Imposta crediti e slot per ruolo, poi carica il listone ufficiale di Fantacalcio.it.</p>
+
+    <div class="setup-grid">
+      <div class="card">
+        <span class="field-label">Crediti a disposizione</span>
+        <div class="credits-input-row">
+          <input type="number" id="input-credits" value="500" min="1" inputmode="numeric">
+          <span>crediti</span>
+        </div>
+
+        <span class="field-label">Composizione rosa per ruolo</span>
+        <div class="role-setup-list">
+          <div class="role-setup-row">
+            <div class="role-chip" style="background:var(--p-bg); color:var(--p-color);">P</div>
+            <div class="role-name">Portieri<small>Portiere</small></div>
+            <div class="stepper" data-role="P">
+              <button data-dir="-1">–</button>
+              <input type="number" value="3" data-role-input="P" readonly>
+              <button data-dir="1">+</button>
+            </div>
+          </div>
+          <div class="role-setup-row">
+            <div class="role-chip" style="background:var(--d-bg); color:var(--d-color);">D</div>
+            <div class="role-name">Difensori<small>Difensore</small></div>
+            <div class="stepper" data-role="D">
+              <button data-dir="-1">–</button>
+              <input type="number" value="8" data-role-input="D" readonly>
+              <button data-dir="1">+</button>
+            </div>
+          </div>
+          <div class="role-setup-row">
+            <div class="role-chip" style="background:var(--c-bg); color:var(--c-color);">C</div>
+            <div class="role-name">Centrocampisti<small>Centrocampista</small></div>
+            <div class="stepper" data-role="C">
+              <button data-dir="-1">–</button>
+              <input type="number" value="8" data-role-input="C" readonly>
+              <button data-dir="1">+</button>
+            </div>
+          </div>
+          <div class="role-setup-row">
+            <div class="role-chip" style="background:var(--a-bg); color:var(--a-color);">A</div>
+            <div class="role-name">Attaccanti<small>Attaccante</small></div>
+            <div class="stepper" data-role="A">
+              <button data-dir="-1">–</button>
+              <input type="number" value="6" data-role-input="A" readonly>
+              <button data-dir="1">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="total-line">
+          <span>Totale giocatori in rosa</span>
+          <b id="total-players">25</b>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="field-label">Listone ufficiale</span>
+        <div class="upload-box" id="upload-box">
+          <div class="icon">⇪</div>
+          <div class="main">Carica il file del listone</div>
+          <div class="sub">Excel (.xlsx) o CSV scaricato da Fantacalcio.it</div>
+        </div>
+        <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
+        <div class="preview-summary" id="preview-summary"></div>
+
+        <div class="setup-cta" style="justify-content:space-between;">
+          <button class="btn btn-ghost" id="btn-setup-import">Importa backup…</button>
+          <button class="btn btn-primary" id="btn-start-auction" disabled>Inizia l'asta →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== AUCTION SCREEN ===================== -->
+<div id="screen-auction" class="hidden">
+  <div class="wrap">
+    <div class="auction-header">
+      <div>
+        <div class="top-eyebrow"><span class="dot"></span>ASTA IN CORSO</div>
+        <h1 class="page-title display">Il tuo tabellone</h1>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="btn-summary" title="Riepilogo asta">📊</button>
+        <button class="icon-btn" id="btn-undo" title="Annulla ultima azione">⤺</button>
+        <button class="icon-btn" id="btn-export" title="Esporta rosa CSV">⭳</button>
+        <button class="icon-btn" id="btn-backup-export" title="Esporta backup completo">💾</button>
+        <button class="icon-btn" id="btn-backup-import" title="Importa backup">📂</button>
+        <input type="file" id="backup-input" accept=".json" class="hidden">
+        <button class="icon-btn" id="btn-reset" title="Nuova asta">↺</button>
+      </div>
+    </div>
+
+    <!-- SCOREBOARD -->
+    <div class="scoreboard">
+      <div class="warning-banner hidden" id="budget-warning">⚠ <span id="budget-warning-text"></span></div>
+      <div class="credits-block" id="credits-block">
+        <div>
+          <div class="label">Crediti residui</div>
+          <div class="big display" id="credits-remaining">500</div>
+        </div>
+        <div class="of display">/ <span id="credits-total">500</span></div>
+      </div>
+      <div class="role-tally" id="role-tally"></div>
+    </div>
+
+    <div class="panel-toggle">
+      <button class="active" data-panel="list">Listone</button>
+      <button data-panel="roster">La mia rosa</button>
+    </div>
+
+    <div class="main-grid">
+      <!-- LISTONE -->
+      <div class="panel" id="panel-list">
+        <div class="panel-head">
+          <h2 class="display">Listone</h2>
+          <span class="count-badge" id="list-count">0 disponibili</span>
+        </div>
+        <div class="filters" id="role-filters">
+          <button class="role-tab active" data-role="ALL">Tutti</button>
+          <button class="role-tab" data-role="P">Por</button>
+          <button class="role-tab" data-role="D">Dif</button>
+          <button class="role-tab" data-role="C">Cen</button>
+          <button class="role-tab" data-role="A">Att</button>
+          <button class="role-tab fav-toggle" id="fav-filter-toggle">★ Preferiti</button>
+        </div>
+        <div class="search-row">
+          <input type="text" id="search-input" placeholder="Cerca calciatore o squadra…">
+        </div>
+        <div class="player-list" id="player-list"></div>
+      </div>
+
+      <!-- ROSTER -->
+      <div class="panel" id="panel-roster">
+        <div class="panel-head">
+          <h2 class="display">La mia rosa</h2>
+          <span class="count-badge" id="roster-count">0 / 0</span>
+        </div>
+        <div id="roster-content"></div>
+        <div class="roster-footer">
+          <button class="btn btn-ghost btn-block" id="btn-export-2">Esporta rosa (CSV)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTION BAR -->
+<div id="action-bar" class="hidden">
+  <div class="inner">
+    <div class="pinfo">
+      <div class="n" id="ab-name">—</div>
+      <div class="t" id="ab-team">—</div>
+    </div>
+    <div class="price-stepper">
+      <button data-step="-5">–5</button>
+      <button data-step="-1">–1</button>
+      <input type="number" id="ab-price" inputmode="numeric" value="1">
+      <button data-step="1">+1</button>
+      <button data-step="5">+5</button>
+    </div>
+    <div class="actions">
+      <button class="btn btn-ghost" id="ab-cancel">Annulla</button>
+      <button class="btn btn-danger-ghost" id="ab-other">Preso da altri</button>
+      <button class="btn btn-primary" id="ab-confirm">Assegna a me ✓</button>
+    </div>
+  </div>
+</div>
+
+<div id="summary-overlay" class="hidden">
+  <div class="box">
+    <h3 class="display">Riepilogo asta</h3>
+    <div id="summary-content"></div>
+    <div class="box-actions" style="margin-top:18px;">
+      <button class="btn btn-primary" id="summary-close">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<div id="overlay" class="hidden">
+  <div class="box">
+    <h3 class="display" id="overlay-title">Conferma</h3>
+    <p id="overlay-text">Sei sicuro?</p>
+    <div class="box-actions">
+      <button class="btn btn-ghost" id="overlay-cancel">Annulla</button>
+      <button class="btn btn-primary" id="overlay-confirm">Conferma</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const ROLE_META = {
+    P: { label:"Portiere", plural:"Portieri", color:"var(--p-color)", bg:"var(--p-bg)" },
+    D: { label:"Difensore", plural:"Difensori", color:"var(--d-color)", bg:"var(--d-bg)" },
+    C: { label:"Centrocampista", plural:"Centrocampisti", color:"var(--c-color)", bg:"var(--c-bg)" },
+    A: { label:"Attaccante", plural:"Attaccanti", color:"var(--a-color)", bg:"var(--a-bg)" },
+  };
+  const ROLE_ORDER = ["P","D","C","A"];
+  const STORAGE_KEY = "fc_asta_state_v1";
+
+  let state = null;           // main app state, persisted
+  let parsedPlayers = null;   // players parsed during setup, before confirming start
+  let selectedPlayerId = null;
+  let currentRoleFilter = "ALL";
+  let searchTerm = "";
+  let favOnly = false;
+
+  // ---------- helpers ----------
+  const $ = (sel, root) => (root||document).querySelector(sel);
+  const $$ = (sel, root) => Array.from((root||document).querySelectorAll(sel));
+
+  function showToast(msg){
+    const t = $("#toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=>t.classList.remove("show"), 2200);
+  }
+
+  function showScreen(id){
+    ["screen-resume","screen-setup","screen-auction"].forEach(s=>{
+      $("#"+s).classList.toggle("hidden", s!==id);
+    });
+  }
+
+  async function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }catch(e){ console.error("Errore salvataggio stato", e); }
+  }
+
+  async function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw) return JSON.parse(raw);
+    }catch(e){ /* nessuno stato salvato */ }
+    return null;
+  }
+
+  async function clearState(){
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  }
+
+  // ---------- FILE PARSING ----------
+  function normalizeRole(raw){
+    if(!raw) return null;
+    const c = String(raw).trim().toUpperCase().charAt(0);
+    if(["P","D","C","A"].includes(c)) return c;
+    return null;
+  }
+
+  function findHeaderRowIndex(rows){
+    for(let i=0;i<Math.min(rows.length, 20);i++){
+      const cells = (rows[i]||[]).map(c=>String(c||"").trim().toLowerCase());
+      const hasNome = cells.includes("nome");
+      const hasRuolo = cells.includes("r") || cells.includes("ruolo");
+      const hasSquadra = cells.includes("squadra");
+      if(hasNome && hasRuolo && hasSquadra) return i;
+    }
+    return -1;
+  }
+
+  function parseWorkbookToPlayers(arrayBuffer){
+    const data = new Uint8Array(arrayBuffer);
+    const wb = XLSX.read(data, {type:"array"});
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:""});
+
+    const headerIdx = findHeaderRowIndex(rows);
+    if(headerIdx === -1) throw new Error("HEADER_NOT_FOUND");
+
+    const header = rows[headerIdx].map(c=>String(c||"").trim().toLowerCase());
+    const idxRuolo = header.findIndex(c=>c==="r" || c==="ruolo");
+    const idxNome = header.findIndex(c=>c==="nome");
+    const idxSquadra = header.findIndex(c=>c==="squadra");
+    let idxPrice = header.findIndex(c=>c.replace(/\s/g,"")==="qt.a" || c.replace(/\s/g,"")==="qta");
+    if(idxPrice === -1) idxPrice = header.findIndex(c=>c==="fvm");
+
+    const players = [];
+    for(let i=headerIdx+1; i<rows.length; i++){
+      const row = rows[i];
+      if(!row) continue;
+      const nome = String(row[idxNome]||"").trim();
+      const roleRaw = row[idxRuolo];
+      const ruolo = normalizeRole(roleRaw);
+      if(!nome || !ruolo) continue;
+      const squadra = String(row[idxSquadra]||"").trim();
+      let quotazione = idxPrice>-1 ? parseInt(row[idxPrice], 10) : null;
+      if(isNaN(quotazione)) quotazione = null;
+
+      players.push({
+        id: "p" + i + "_" + nome.replace(/\s/g,""),
+        ruolo, nome, squadra, quotazione,
+        taken:false, takenBy:null, price:null, favorite:false
+      });
+    }
+    return players;
+  }
+
+  function roleCounts(players){
+    const c = {P:0,D:0,C:0,A:0};
+    players.forEach(p=>{ if(c[p.ruolo]!==undefined) c[p.ruolo]++; });
+    return c;
+  }
+
+  // ---------- SETUP SCREEN LOGIC ----------
+  function initSetupScreen(){
+    const roleSlots = {P:3,D:8,C:8,A:6};
+
+    function updateTotal(){
+      const total = roleSlots.P+roleSlots.D+roleSlots.C+roleSlots.A;
+      $("#total-players").textContent = total;
+    }
+    updateTotal();
+
+    $$(".stepper[data-role]").forEach(stepper=>{
+      const role = stepper.dataset.role;
+      const input = stepper.querySelector("input");
+      stepper.querySelectorAll("button").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const dir = parseInt(btn.dataset.dir,10);
+          roleSlots[role] = Math.max(0, roleSlots[role] + dir);
+          input.value = roleSlots[role];
+          updateTotal();
+        });
+      });
+    });
+
+    const uploadBox = $("#upload-box");
+    const fileInput = $("#file-input");
+    uploadBox.addEventListener("click", ()=>fileInput.click());
+
+    fileInput.addEventListener("change", (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt){
+        try{
+          const players = parseWorkbookToPlayers(evt.target.result);
+          if(players.length === 0) throw new Error("EMPTY");
+          parsedPlayers = players;
+          const counts = roleCounts(players);
+          uploadBox.classList.add("has-file");
+          uploadBox.querySelector(".main").textContent = "✓ " + file.name;
+          uploadBox.querySelector(".sub").textContent = players.length + " giocatori riconosciuti";
+          $("#preview-summary").innerHTML = ROLE_ORDER.map(r=>
+            `<div class="preview-pill" style="color:${ROLE_META[r].color}"><b>${counts[r]}</b> ${ROLE_META[r].plural}</div>`
+          ).join("");
+          checkStartEnabled();
+        }catch(err){
+          parsedPlayers = null;
+          uploadBox.classList.remove("has-file");
+          uploadBox.querySelector(".main").textContent = "File non riconosciuto";
+          uploadBox.querySelector(".sub").textContent = "Verifica che sia il listone originale di Fantacalcio.it (colonne R, Nome, Squadra)";
+          $("#preview-summary").innerHTML = "";
+          checkStartEnabled();
+          showToast("Non riesco a leggere il file. Riprova con il listone ufficiale.");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    function checkStartEnabled(){
+      const credits = parseInt($("#input-credits").value,10);
+      const total = roleSlots.P+roleSlots.D+roleSlots.C+roleSlots.A;
+      const ok = parsedPlayers && parsedPlayers.length>0 && credits>0 && total>0;
+      $("#btn-start-auction").disabled = !ok;
+    }
+    $("#input-credits").addEventListener("input", checkStartEnabled);
+    checkStartEnabled();
+
+    $("#btn-setup-import").addEventListener("click", ()=>$("#backup-input").click());
+
+    $("#btn-start-auction").addEventListener("click", async ()=>{
+      const credits = parseInt($("#input-credits").value,10) || 0;
+      state = {
+        credits: { total: credits, remaining: credits },
+        roleSlots: { P:roleSlots.P, D:roleSlots.D, C:roleSlots.C, A:roleSlots.A },
+        players: parsedPlayers,
+        roster: []
+      };
+      await saveState();
+      enterAuctionScreen();
+    });
+  }
+
+  // ---------- AUCTION SCREEN LOGIC ----------
+  function roleUsedCount(role){
+    return state.roster.filter(p=>p.ruolo===role).length;
+  }
+
+  function renderScoreboard(){
+    $("#credits-remaining").textContent = state.credits.remaining;
+    $("#credits-total").textContent = state.credits.total;
+    const block = $("#credits-block");
+    block.classList.toggle("low", state.credits.remaining <= Math.max(5, Math.round(state.credits.total*0.05)));
+
+    const remainingByRole = {};
+    let totalRemainingSlots = 0;
+    ROLE_ORDER.forEach(r=>{
+      remainingByRole[r] = Math.max(0, state.roleSlots[r] - roleUsedCount(r));
+      totalRemainingSlots += remainingByRole[r];
+    });
+
+    const warning = $("#budget-warning");
+    if(totalRemainingSlots>0 && state.credits.remaining < totalRemainingSlots){
+      warning.classList.remove("hidden");
+      $("#budget-warning-text").textContent =
+        `Rischi di non completare la rosa: servono almeno ${totalRemainingSlots} crediti per gli slot rimanenti, ne hai ${state.credits.remaining}.`;
+    } else {
+      warning.classList.add("hidden");
+    }
+
+    const tally = $("#role-tally");
+    tally.innerHTML = ROLE_ORDER.map(r=>{
+      const used = roleUsedCount(r);
+      const total = state.roleSlots[r];
+      const pct = total>0 ? Math.min(100, (used/total)*100) : 0;
+      const remaining = remainingByRole[r];
+      let avgText = "—";
+      if(remaining>0){
+        const otherRemaining = totalRemainingSlots - remaining;
+        const spendable = Math.max(0, state.credits.remaining - otherRemaining);
+        avgText = "~" + Math.floor(spendable/remaining) + "/slot";
+      }
+      return `<div class="tally-item">
+        <div class="row1">
+          <span class="rname" style="color:${ROLE_META[r].color}">${r}</span>
+          <span class="rcount">${used}/${total}</span>
+        </div>
+        <div class="tally-bar"><div class="tally-fill" style="width:${pct}%; background:${ROLE_META[r].color}"></div></div>
+        <div class="tally-avg">${avgText}</div>
+      </div>`;
+    }).join("");
+  }
+
+  function availablePlayers(){
+    return state.players.filter(p=>{
+      if(p.taken) return false;
+      if(currentRoleFilter!=="ALL" && p.ruolo!==currentRoleFilter) return false;
+      if(searchTerm){
+        const s = searchTerm.toLowerCase();
+        if(!p.nome.toLowerCase().includes(s) && !p.squadra.toLowerCase().includes(s)) return false;
+      }
+      if(favOnly && !p.favorite) return false;
+      return true;
+    }).sort((a,b)=>{
+      const qa = a.quotazione==null?-1:a.quotazione;
+      const qb = b.quotazione==null?-1:b.quotazione;
+      return qb-qa;
+    });
+  }
+
+  function renderPlayerList(){
+    const list = availablePlayers();
+    $("#list-count").textContent = list.length + " disponibili";
+    const container = $("#player-list");
+
+    if(list.length===0){
+      container.innerHTML = `<div class="empty-state"><div class="big">🔍</div>Nessun calciatore trovato.</div>`;
+      return;
+    }
+
+    container.innerHTML = list.map(p=>{
+      const rm = ROLE_META[p.ruolo];
+      const sel = p.id===selectedPlayerId ? " selected" : "";
+      const favActive = p.favorite ? " active" : "";
+      return `<div class="player-row${sel}" data-id="${p.id}">
+        <button class="fav-star${favActive}" data-fav-id="${p.id}" title="Preferito">★</button>
+        <div class="rbadge" style="background:${rm.bg}; color:${rm.color}">${p.ruolo}</div>
+        <div class="pname">
+          <div class="n">${escapeHtml(p.nome)}</div>
+          <div class="t">${escapeHtml(p.squadra||"")}</div>
+        </div>
+        <div class="pqt">${p.quotazione!=null ? p.quotazione : "–"}</div>
+      </div>`;
+    }).join("");
+
+    $$(".player-row", container).forEach(row=>{
+      row.addEventListener("click", ()=>selectPlayer(row.dataset.id));
+    });
+    $$(".fav-star", container).forEach(star=>{
+      star.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        toggleFavorite(star.dataset.favId);
+      });
+    });
+  }
+
+  async function toggleFavorite(id){
+    const p = state.players.find(x=>x.id===id);
+    if(!p) return;
+    p.favorite = !p.favorite;
+    await saveState();
+    renderPlayerList();
+  }
+
+  function renderRoster(){
+    const container = $("#roster-content");
+    const totalSlots = ROLE_ORDER.reduce((s,r)=>s+state.roleSlots[r],0);
+    $("#roster-count").innerHTML = state.roster.length + " / " + totalSlots +
+      (state.roster.length===totalSlots && totalSlots>0 ? ` <span class="roster-complete-badge">Completa ✓</span>` : "");
+
+    container.innerHTML = ROLE_ORDER.map(r=>{
+      const items = state.roster.filter(p=>p.ruolo===r);
+      const slots = state.roleSlots[r];
+      const rm = ROLE_META[r];
+      let inner = items.map(p=>{
+        let diffHtml = "";
+        if(p.quotazione!=null){
+          const diff = p.price - p.quotazione;
+          const cls = diff>0 ? "pos" : (diff<0 ? "neg" : "zero");
+          const sign = diff>0 ? "+" : "";
+          diffHtml = `<span class="diff-badge ${cls}">${sign}${diff}</span>`;
+        }
+        return `
+        <div class="roster-item">
+          <div class="n">${escapeHtml(p.nome)}</div>
+          <div class="t">${escapeHtml(p.squadra||"")}</div>
+          ${diffHtml}
+          <div class="price">${p.price}</div>
+          <button class="rm" data-id="${p.id}" title="Rimuovi">✕</button>
+        </div>`;
+      }).join("");
+      const emptyCount = Math.max(0, slots - items.length);
+      for(let i=0;i<emptyCount;i++){
+        inner += `<div class="roster-empty-slot">Slot ${r} libero</div>`;
+      }
+      return `<div class="roster-role-group">
+        <div class="rgh"><span class="lbl" style="color:${rm.color}">${rm.plural}</span><span class="cnt">${items.length}/${slots}</span></div>
+        ${inner}
+      </div>`;
+    }).join("");
+
+    $$(".roster-item .rm", container).forEach(btn=>{
+      btn.addEventListener("click", ()=>removeFromRoster(btn.dataset.id));
+    });
+  }
+
+  function selectPlayer(id){
+    selectedPlayerId = id;
+    const p = state.players.find(x=>x.id===id);
+    if(!p) return closeActionBar();
+    $("#ab-name").textContent = p.nome;
+    $("#ab-team").textContent = (p.squadra||"") + " · " + ROLE_META[p.ruolo].label;
+    $("#ab-price").value = p.quotazione!=null ? p.quotazione : 1;
+    $("#action-bar").classList.remove("hidden");
+    renderPlayerList();
+  }
+
+  function closeActionBar(){
+    selectedPlayerId = null;
+    $("#action-bar").classList.add("hidden");
+    renderPlayerList();
+  }
+
+  async function assignToMe(){
+    const p = state.players.find(x=>x.id===selectedPlayerId);
+    if(!p) return;
+    const price = Math.max(0, parseInt($("#ab-price").value,10) || 0);
+
+    if(price > state.credits.remaining){
+      showToast("Crediti insufficienti per questa cifra.");
+      return;
+    }
+    const slotsFull = roleUsedCount(p.ruolo) >= state.roleSlots[p.ruolo];
+    if(slotsFull){
+      showToast(`Ruolo ${ROLE_META[p.ruolo].label} già completo.`);
+      return;
+    }
+
+    p.taken = true; p.takenBy = "me"; p.price = price;
+    state.credits.remaining -= price;
+    state.roster.push({ id:p.id, nome:p.nome, squadra:p.squadra, ruolo:p.ruolo, price, quotazione:p.quotazione });
+    state.lastAction = { type:"assign", playerId:p.id };
+
+    await saveState();
+    closeActionBar();
+    renderScoreboard();
+    renderPlayerList();
+    renderRoster();
+    showToast(`${p.nome} aggiunto alla rosa per ${price} crediti.`);
+  }
+
+  async function markTakenByOthers(){
+    const p = state.players.find(x=>x.id===selectedPlayerId);
+    if(!p) return;
+    p.taken = true; p.takenBy = "other";
+    state.lastAction = { type:"other", playerId:p.id };
+    await saveState();
+    closeActionBar();
+    renderPlayerList();
+    showToast(`${p.nome} segnato come preso da un altro allenatore.`);
+  }
+
+  async function undoLastAction(){
+    const last = state.lastAction;
+    if(!last){ showToast("Nessuna azione da annullare."); return; }
+    state.lastAction = null;
+    if(last.type==="assign"){
+      await removeFromRoster(last.playerId);
+    } else if(last.type==="other"){
+      const p = state.players.find(x=>x.id===last.playerId);
+      if(p){ p.taken=false; p.takenBy=null; }
+      await saveState();
+      renderPlayerList();
+      showToast(`${p ? p.nome : "Giocatore"} rimesso disponibile.`);
+    } else {
+      await saveState();
+    }
+  }
+
+  async function removeFromRoster(playerId){
+    const idx = state.roster.findIndex(r=>r.id===playerId);
+    if(idx===-1) return;
+    const rItem = state.roster[idx];
+    state.credits.remaining += rItem.price;
+    state.roster.splice(idx,1);
+    const p = state.players.find(x=>x.id===playerId);
+    if(p){ p.taken=false; p.takenBy=null; p.price=null; }
+    if(state.lastAction && state.lastAction.playerId===playerId) state.lastAction = null;
+    await saveState();
+    renderScoreboard();
+    renderPlayerList();
+    renderRoster();
+    showToast(`${rItem.nome} rimosso dalla rosa, crediti restituiti.`);
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  function exportRosterCsv(){
+    if(!state.roster.length){ showToast("La rosa è ancora vuota."); return; }
+    const rows = [["Ruolo","Nome","Squadra","Prezzo","Quotazione","Scostamento"]];
+    ROLE_ORDER.forEach(r=>{
+      state.roster.filter(p=>p.ruolo===r).forEach(p=>{
+        const diff = p.quotazione!=null ? (p.price - p.quotazione) : "";
+        rows.push([ROLE_META[r].label, p.nome, p.squadra||"", p.price, p.quotazione!=null?p.quotazione:"", diff]);
+      });
+    });
+    const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(";")).join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "rosa-fantacalcio.csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadJson(obj, filename){
+    const blob = new Blob([JSON.stringify(obj)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportBackup(){
+    if(!state){ showToast("Nessuna asta da esportare."); return; }
+    downloadJson(state, "backup-asta-fantacalcio.json");
+    showToast("Backup esportato.");
+  }
+
+  function importBackup(file){
+    const reader = new FileReader();
+    reader.onload = async function(evt){
+      try{
+        const parsed = JSON.parse(evt.target.result);
+        if(!parsed.credits || !parsed.roleSlots || !parsed.players || !parsed.roster){
+          throw new Error("INVALID");
+        }
+        state = parsed;
+        await saveState();
+        enterAuctionScreen();
+        showToast("Backup importato correttamente.");
+      }catch(e){
+        showToast("File di backup non valido.");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function openSummary(){
+    const totalSpent = state.credits.total - state.credits.remaining;
+    const perRole = ROLE_ORDER.map(r=>{
+      const items = state.roster.filter(p=>p.ruolo===r);
+      const spent = items.reduce((s,p)=>s+p.price,0);
+      const avg = items.length ? Math.round(spent/items.length) : 0;
+      return { r, count:items.length, slots:state.roleSlots[r], spent, avg };
+    });
+    const top5 = [...state.roster].sort((a,b)=>b.price-a.price).slice(0,5);
+
+    let html = `
+      <div class="summary-stat-row"><span class="lbl">Crediti spesi</span><span class="val">${totalSpent} / ${state.credits.total}</span></div>
+      <div class="summary-stat-row"><span class="lbl">Giocatori in rosa</span><span class="val">${state.roster.length} / ${ROLE_ORDER.reduce((s,r)=>s+state.roleSlots[r],0)}</span></div>
+    `;
+    html += `<div class="summary-section-title">Spesa per ruolo</div>`;
+    perRole.forEach(pr=>{
+      html += `<div class="summary-stat-row">
+        <span class="lbl" style="color:${ROLE_META[pr.r].color}">${ROLE_META[pr.r].plural} (${pr.count}/${pr.slots})</span>
+        <span class="val">${pr.spent} <small style="font-family:'Manrope'; font-size:11px; color:var(--text-dim)">· media ${pr.avg}</small></span>
+      </div>`;
+    });
+    if(top5.length){
+      html += `<div class="summary-section-title">Acquisti più cari</div>`;
+      top5.forEach(p=>{
+        html += `<div class="summary-top-item"><span class="n">${escapeHtml(p.nome)}</span><span class="p">${p.price}</span></div>`;
+      });
+    }
+    $("#summary-content").innerHTML = html;
+    $("#summary-overlay").classList.remove("hidden");
+  }
+
+  function showOverlay(title, text, onConfirm){
+    $("#overlay-title").textContent = title;
+    $("#overlay-text").textContent = text;
+    $("#overlay").classList.remove("hidden");
+    const confirmBtn = $("#overlay-confirm");
+    const cancelBtn = $("#overlay-cancel");
+    function cleanup(){
+      $("#overlay").classList.add("hidden");
+      confirmBtn.removeEventListener("click", onOk);
+      cancelBtn.removeEventListener("click", onCancel);
+    }
+    function onOk(){ cleanup(); onConfirm(); }
+    function onCancel(){ cleanup(); }
+    confirmBtn.addEventListener("click", onOk);
+    cancelBtn.addEventListener("click", onCancel);
+  }
+
+  function initAuctionScreenEvents(){
+    $$(".role-tab").forEach(tab=>{
+      tab.addEventListener("click", ()=>{
+        currentRoleFilter = tab.dataset.role;
+        $$(".role-tab").forEach(t=>t.classList.toggle("active", t===tab));
+        renderPlayerList();
+      });
+    });
+
+    $("#search-input").addEventListener("input", (e)=>{
+      searchTerm = e.target.value.trim();
+      renderPlayerList();
+    });
+
+    $("#fav-filter-toggle").addEventListener("click", ()=>{
+      favOnly = !favOnly;
+      $("#fav-filter-toggle").classList.toggle("active", favOnly);
+      renderPlayerList();
+    });
+
+    $("#btn-undo").addEventListener("click", undoLastAction);
+    $("#btn-summary").addEventListener("click", openSummary);
+    $("#summary-close").addEventListener("click", ()=>$("#summary-overlay").classList.add("hidden"));
+
+    $("#btn-backup-export").addEventListener("click", exportBackup);
+    $("#btn-backup-import").addEventListener("click", ()=>$("#backup-input").click());
+    $("#backup-input").addEventListener("change", (e)=>{
+      const file = e.target.files[0];
+      if(file) importBackup(file);
+      e.target.value = "";
+    });
+
+    $$(".panel-toggle button").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        $$(".panel-toggle button").forEach(b=>b.classList.toggle("active", b===btn));
+        const showList = btn.dataset.panel==="list";
+        $("#panel-list").style.display = showList ? "" : "none";
+        $("#panel-roster").style.display = showList ? "none" : "";
+        syncPanelVisibility(true);
+      });
+    });
+
+    $("#ab-cancel").addEventListener("click", closeActionBar);
+    $("#ab-confirm").addEventListener("click", assignToMe);
+    $("#ab-other").addEventListener("click", markTakenByOthers);
+
+    $$(".price-stepper button[data-step]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const input = $("#ab-price");
+        const step = parseInt(btn.dataset.step,10);
+        input.value = Math.max(0, (parseInt(input.value,10)||0) + step);
+      });
+    });
+
+    $("#btn-export").addEventListener("click", exportRosterCsv);
+    $("#btn-export-2").addEventListener("click", exportRosterCsv);
+
+    $("#btn-reset").addEventListener("click", ()=>{
+      showOverlay("Iniziare una nuova asta?", "Perderai i dati dell'asta corrente (rosa e crediti). Questa azione non può essere annullata.", async ()=>{
+        await clearState();
+        state = null; parsedPlayers = null; selectedPlayerId = null;
+        currentRoleFilter="ALL"; searchTerm="";
+        location.reload();
+      });
+    });
+  }
+
+  function syncPanelVisibility(force){
+    if(window.innerWidth >= 980){
+      $("#panel-list").style.display = "";
+      $("#panel-roster").style.display = "";
+    }
+  }
+  window.addEventListener("resize", ()=>syncPanelVisibility());
+
+  function enterAuctionScreen(){
+    showScreen("screen-auction");
+    renderScoreboard();
+    renderPlayerList();
+    renderRoster();
+    syncPanelVisibility();
+  }
+
+  // ---------- BOOT ----------
+  async function boot(){
+    initSetupScreen();
+    initAuctionScreenEvents();
+
+    const saved = await loadState();
+    if(saved && saved.players && saved.roster){
+      state = saved;
+      $("#resume-credits").textContent = state.credits.remaining;
+      $("#resume-count").textContent = state.roster.length;
+      showScreen("screen-resume");
+
+      $("#btn-resume-continue").addEventListener("click", ()=>{
+        enterAuctionScreen();
+      });
+      $("#btn-resume-new").addEventListener("click", ()=>{
+        showOverlay("Iniziare una nuova asta?", "L'asta salvata verrà eliminata definitivamente.", async ()=>{
+          await clearState();
+          state = null;
+          showScreen("screen-setup");
+        });
+      });
+    } else {
+      showScreen("screen-setup");
+    }
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
